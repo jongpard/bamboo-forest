@@ -20,10 +20,14 @@ app.command('/익명', async ({ ack, command, client }) => {
 // Message Shortcut '익명으로 답장' 처리
 app.shortcut('anon_reply', async ({ ack, body, client }) => {
   await ack();
-  const message = (body.message as any);
+  // 타입 안전을 위해 any로 캐스팅
+  const payload: any = body;
+  const message = payload.message;
   const threadTs = message.thread_ts || message.ts;
+  const ch: any = payload.channel;
+  const chId = ch?.id || channel;
   await client.chat.postMessage({
-    channel: body.channel!.id,
+    channel: chId,
     text: message.text,
     thread_ts: threadTs,
   });
