@@ -11,12 +11,21 @@ const receiver = new ExpressReceiver({ signingSecret });
 const app = new App({ token: botToken, receiver, logLevel: LogLevel.INFO });
 
 // Slash Command '/익명' 처리
-app.command('/익명', async ({ ack, payload, client }) => {
+app.command('/익명', async ({ ack, command, client }) => {
   await ack();
-  const text = (payload as any).text;
+  const text = command.text;
+  await client.chat.postMessage({ channel, text });
+});
+
+// Message Shortcut '익명으로 답장' 처리
+app.shortcut('anon_reply', async ({ ack, body, client }) => {
+  await ack();
+  const message = (body.message as any);
+  const threadTs = message.thread_ts || message.ts;
   await client.chat.postMessage({
-    channel,
-    text,
+    channel: body.channel!.id,
+    text: message.text,
+    thread_ts: threadTs,
   });
 });
 
@@ -26,7 +35,7 @@ app.command('/익명', async ({ ack, payload, client }) => {
     await app.start(port);
     console.log(`⚡️ Bolt app is running on port ${port}`);
   } catch (error) {
-    console.error('Unable to start App', error);
+    console.error('Unable to start app', error);
     process.exit(1);
   }
 })();
